@@ -1,0 +1,53 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <meta charset="UTF-8" />
+    <meta http-equiv="X-UA-Compatible" content="IE=edge" />
+    <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no" />
+    <title>Private PDF Unlocker</title>
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@stlite/mountable@0.39.0/build/stlite.css" />
+  </head>
+  <body>
+    <div id="root"></div>
+    <script src="https://cdn.jsdelivr.net/npm/@stlite/mountable@0.39.0/build/stlite.js"></script>
+    <script>
+      stlite.mount({
+        requirements: ["pypdf"], // This installs the library in the browser!
+        entrypoint: "app.py",
+        files: {
+          "app.py": `
+import streamlit as st
+from pypdf import PdfReader, PdfWriter
+import io
+
+st.set_page_config(page_title="100% Private Unlocker", page_icon="🔒")
+
+st.title("🔒 Private PDF Unlocker")
+st.success("🛡️ **Privacy Level: Maximum.** This app runs entirely in your browser. Your PDF never leaves your computer.")
+
+uploaded_file = st.file_uploader("Upload locked PDF", type="pdf")
+password = st.text_input("Password", type="password")
+
+if uploaded_file and password:
+    if st.button("Unlock"):
+        reader = PdfReader(uploaded_file)
+        if reader.is_encrypted:
+            if reader.decrypt(password):
+                writer = PdfWriter()
+                for page in reader.pages:
+                    writer.add_page(page)
+                
+                out = io.BytesIO()
+                writer.write(out)
+                
+                st.download_button("Download Unlocked PDF", out.getvalue(), "unlocked.pdf", "application/pdf")
+            else:
+                st.error("Wrong password.")
+        else:
+            st.info("Not encrypted.")
+`,
+        },
+      }, document.getElementById("root"));
+    </script>
+  </body>
+</html>
